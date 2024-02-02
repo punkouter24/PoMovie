@@ -1,0 +1,104 @@
+@page "/addmovies"
+@rendermode InteractiveServer
+@using PoMovie.Models
+@using PoMovie.Services
+@inject HttpClient Http
+@inject MovieService MovieService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@* @rendermode @(new InteractiveServerRenderMode(false)) *@
+
+<h3>Add Movies</h3>
+
+<div>
+    <input @bind="searchQuery" placeholder="Enter movie title..." />
+    <button @onclick="SearchMovies">Search</button>
+</div>
+
+@if (isLoading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (searchResults != null)
+{
+    if (searchResults.Any())
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Year</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var movie in searchResults)
+                {
+                    <tr>
+                        <td>@movie.Title</td>
+                        <td>@movie.Year</td>
+                        <td><button @onclick="() => AddMovie(movie)">Add</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No results found.</p>
+    }
+}
+
+@code {
+    private string searchQuery;
+    private List<Movie> searchResults;
+    private bool isLoading;
+
+    private async Task SearchMovies()
+    {
+        isLoading = true;
+        var apiKey = "24d49563";
+        var response = await Http.GetFromJsonAsync<OmdbSearchResult>($"https://www.omdbapi.com/?apikey={apiKey}&s={Uri.EscapeDataString(searchQuery)}");
+
+        if (response != null && response.Search != null)
+        {
+            searchResults = response.Search.Select(m => new Movie
+            {
+                Title = m.Title,
+                Year = int.Parse(m.Year.Split('–')[0]), // Handle year ranges
+                // Set additional properties as needed
+            }).ToList();
+        }
+        else
+        {
+            searchResults = new List<Movie>();
+        }
+        isLoading = false;
+    }
+
+    private async Task AddMovie(Movie movie)
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (!user.Identity.IsAuthenticated)
+        {
+            // Handle unauthenticated scenario
+            return;
+        }
+        var userId = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        movie.UserId = userId;
+
+        await MovieService.AddMovieAsync(movie);
+        // Optional: Provide feedback to the user that the movie was added
+    }
+
+    public class OmdbSearchResult
+    {
+        public List<OmdbMovie> Search { get; set; }
+    }
+
+    public class OmdbMovie
+    {
+        public string Title { get; set; }
+        public string Year { get; set; }
+    }
+}

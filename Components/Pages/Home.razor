@@ -1,0 +1,53 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using PoMovie.Services
+@inject MovieService MovieService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@if (movies == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!movies.Any())
+{
+    <p>You have not added any movies yet.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Year</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var movie in movies)
+            {
+                <tr>
+                    <td>@movie.Title</td>
+                    <td>@movie.Year</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Models.Movie> movies;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.Identity.IsAuthenticated)
+        {
+            var userId = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (userId != null)
+            {
+                movies = await MovieService.GetMoviesByUserAsync(userId);
+            }
+        }
+    }
+}
