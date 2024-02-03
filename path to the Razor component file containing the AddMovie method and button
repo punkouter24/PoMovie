@@ -1,0 +1,43 @@
+@page "/add-movie"
+@using MovieLibrary.Data
+@inject MovieService MovieService
+
+@* Add a boolean flag to track the add operation state *@
+@code {
+    private Movie newMovie = new Movie();
+    private bool isAddingMovie = false;
+
+    private async Task AddMovie()
+    {
+        if (isAddingMovie)
+        {
+            return;
+        }
+
+        isAddingMovie = true;
+        await MovieService.AddMovieAsync(newMovie);
+        isAddingMovie = false;
+    }
+}
+
+<h3>Add New Movie</h3>
+
+<EditForm Model="@newMovie" OnValidSubmit="@AddMovie">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="title">Title:</label>
+        <InputText id="title" class="form-control" @bind-Value="newMovie.Title" />
+    </div>
+    <div class="form-group">
+        <label for="director">Director:</label>
+        <InputText id="director" class="form-control" @bind-Value="newMovie.Director" />
+    </div>
+    <div class="form-group">
+        <label for="releaseDate">Release Date:</label>
+        <InputDate id="releaseDate" class="form-control" @bind-Value="newMovie.ReleaseDate" />
+    </div>
+
+    <button type="submit" class="btn btn-primary" disabled="@isAddingMovie">Add Movie</button>
+</EditForm>
