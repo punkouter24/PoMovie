@@ -37,7 +37,8 @@ else if (searchResults != null)
                         <td>@movie.Title</td>
                         <td>@movie.Year</td>
                         <td>
-                            <button class="@(addedMovieIds.Contains(movie.Id) ? "btn-pressed" : "")" @onclick="() => AddMovie(movie)">
+                            <button style="@(addedMovieIds.Contains(movie.Id) ? "background-color: #007bff; color: #fff;" : "")"
+                                    @onclick="() => AddMovie(movie)">
                                 Add
                             </button>
                         </td>
@@ -67,11 +68,11 @@ else if (searchResults != null)
         if (response != null && response.Search != null)
         {
             searchResults = response.Search.Select(m => new Movie
-            {
-                Title = m.Title,
-                Year = int.Parse(m.Year.Split('–')[0]), // Handle year ranges
-                // Set additional properties as needed
-            }).ToList();
+                {
+                    Title = m.Title,
+                    Year = int.Parse(m.Year.Split('–')[0]), // Handle year ranges
+                                                            // Set additional properties as needed
+                }).ToList();
         }
         else
         {
