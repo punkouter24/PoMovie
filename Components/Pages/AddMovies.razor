@@ -36,7 +36,11 @@ else if (searchResults != null)
                     <tr>
                         <td>@movie.Title</td>
                         <td>@movie.Year</td>
-                        <td><button @onclick="() => AddMovie(movie)">Add</button></td>
+                        <td>
+                            <button class="@(addedMovieIds.Contains(movie.Id) ? "btn-pressed" : "")" @onclick="() => AddMovie(movie)">
+                                Add
+                            </button>
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -52,6 +56,7 @@ else if (searchResults != null)
     private string searchQuery;
     private List<Movie> searchResults;
     private bool isLoading;
+    private HashSet<int> addedMovieIds = new HashSet<int>();
 
     private async Task SearchMovies()
     {
@@ -88,6 +93,7 @@ else if (searchResults != null)
         movie.UserId = userId;
 
         await MovieService.AddMovieAsync(movie);
+        addedMovieIds.Add(movie.Id);
         // Optional: Provide feedback to the user that the movie was added
     }
 
