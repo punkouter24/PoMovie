@@ -3,6 +3,7 @@
 @using PoMovie.Services
 @inject MovieService MovieService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject EmailReminderService EmailReminderService
 
 @if (movies == null)
 {
@@ -31,6 +32,8 @@ else
             }
         </tbody>
     </table>
+
+     <button @onclick="SendEmail">Force Email</button>
 }
 
 @code {
@@ -47,6 +50,25 @@ else
             if (userId != null)
             {
                 movies = await MovieService.GetMoviesByUserAsync(userId);
+            }
+        }
+    }
+
+     private async Task SendEmail()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            var userId = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (userId != null)
+            {
+                var email = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value;
+                if (email != null)
+                {
+                    var movieList = string.Join(", ", movies.Select(m => m.Title));
+                    await EmailReminderService.SendWeeklyEmailsAsync(email, "Your Movie List", $"Here is your list of movies: {movieList}");
+                }
             }
         }
     }

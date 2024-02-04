@@ -20,12 +20,28 @@ namespace PoMovie.Services
 
         public async Task SendEmailAsync(string toEmail, string subject, string htmlContent)
         {
-            var apiKey = _configuration["SendGridKey"];
-            var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("your_email@example.com", "Example User");
-            var to = new EmailAddress(toEmail);
-            var msg = MailHelper.CreateSingleEmail(from, to, subject, "", htmlContent);
-            await client.SendEmailAsync(msg);
+            try
+            {
+                var apiKey = _configuration["SendGridKey"];
+                var client = new SendGridClient(apiKey);
+                var from = new EmailAddress("punkouter24@gmail.com", null);
+                var to = new EmailAddress(toEmail);
+                var msg = MailHelper.CreateSingleEmail(from, to, subject, "", htmlContent);
+                var response = await client.SendEmailAsync(msg);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Log the response body or status code for more details
+                    var errorMsg = await response.Body.ReadAsStringAsync();
+                    Console.WriteLine($"Email failed to send: {errorMsg}");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details
+                Console.WriteLine($"Exception occurred: {ex.Message}");
+            }
         }
+
     }
 }

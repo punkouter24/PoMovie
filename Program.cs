@@ -40,6 +40,7 @@ builder.Services.AddScoped<MovieService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddHttpClient();
 builder.Services.AddHostedService<EmailReminderService>();
+builder.Services.AddSingleton<EmailReminderService>();
 
 var app = builder.Build();
 

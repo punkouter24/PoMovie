@@ -36,11 +36,18 @@ namespace PoMovie.Services
             }
         }
 
-        private async Task SendWeeklyEmailsAsync()
+        private  async Task SendWeeklyEmailsAsync()
         {
             // Simulated operation for sending emails
             Console.WriteLine("Sending weekly emails...");
             await _emailService.SendEmailAsync("punkouter24@gmail.com", "From PoMovie", "Don't forget to check out your movie list!");
+        }
+
+        public async Task SendWeeklyEmailsAsync(string email, string subject, string message)
+        {
+            // Simulated operation for sending emails
+            Console.WriteLine("Sending weekly emails...");
+            await _emailService.SendEmailAsync(email, subject, message);
         }
     }
 }

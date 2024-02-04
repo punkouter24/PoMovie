@@ -38,7 +38,7 @@ else if (searchResults != null)
                         <td>@movie.Year</td>
                         <td>
                             <button style="@(addedMovieIds.Contains(movie.Id) ? "background-color: #007bff; color: #fff;" : "")"
-                                    @onclick="() => AddMovie(movie)">
+                                @onclick="() => AddMovie(movie)">
                                 Add
                             </button>
                         </td>
@@ -53,17 +53,40 @@ else if (searchResults != null)
     }
 }
 
+@if (showModal)
+{
+    <div class="modal" tabindex="-1" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Warning</h5>
+                    <button type="button" class="btn-close" @onclick="() => showModal = false"></button>
+                </div>
+                <div class="modal-body">
+                    <p>ALREADY SELECTED</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="() => showModal = false">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private string searchQuery;
     private List<Movie> searchResults;
     private bool isLoading;
     private HashSet<int> addedMovieIds = new HashSet<int>();
+    private bool showModal = false;
+
 
     private async Task SearchMovies()
     {
         isLoading = true;
         var apiKey = "24d49563";
-        var response = await Http.GetFromJsonAsync<OmdbSearchResult>($"https://www.omdbapi.com/?apikey={apiKey}&s={Uri.EscapeDataString(searchQuery)}");
+        var response = await
+        Http.GetFromJsonAsync<OmdbSearchResult>($"https://www.omdbapi.com/?apikey={apiKey}&s={Uri.EscapeDataString(searchQuery)}");
 
         if (response != null && response.Search != null)
         {
@@ -81,6 +104,23 @@ else if (searchResults != null)
         isLoading = false;
     }
 
+    @* private async Task AddMovie(Movie movie)
+{
+var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+var user = authState.User;
+if (!user.Identity.IsAuthenticated)
+{
+// Handle unauthenticated scenario
+return;
+}
+var userId = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+movie.UserId = userId;
+
+await MovieService.AddMovieAsync(movie);
+addedMovieIds.Add(movie.Id);
+// Optional: Provide feedback to the user that the movie was added
+} *@
+
     private async Task AddMovie(Movie movie)
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -93,10 +133,18 @@ else if (searchResults != null)
         var userId = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         movie.UserId = userId;
 
+        if (addedMovieIds.Contains(movie.Id))
+        {
+            // Show modal dialog
+            showModal = true;
+            return;
+        }
+
         await MovieService.AddMovieAsync(movie);
         addedMovieIds.Add(movie.Id);
         // Optional: Provide feedback to the user that the movie was added
     }
+
 
     public class OmdbSearchResult
     {
