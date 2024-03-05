@@ -33,7 +33,7 @@ else
         </tbody>
     </table>
 
-     <button @onclick="SendEmail">Force Email</button>
+    <button @onclick="SendEmail">Force Email</button>
 }
 
 @code {
@@ -43,7 +43,7 @@ else
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        
+
         if (user.Identity.IsAuthenticated)
         {
             var userId = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -54,7 +54,7 @@ else
         }
     }
 
-     private async Task SendEmail()
+    private async Task SendEmail()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
