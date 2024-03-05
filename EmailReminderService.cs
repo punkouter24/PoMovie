@@ -22,21 +22,32 @@ namespace PoMovie.Services
             while (!stoppingToken.IsCancellationRequested)
             {
                 var now = DateTime.Now;
-                if (now.DayOfWeek == _dayToSend && now.TimeOfDay > _timeToSend && now.TimeOfDay < _timeToSend.Add(TimeSpan.FromHours(1)))
+                var nextSendTime = CalculateNextSendTime(now);
+
+                if (now >= nextSendTime && now < nextSendTime.Add(TimeSpan.FromHours(1)))
                 {
                     await SendWeeklyEmailsAsync();
-                    // Wait until next week.
-                    await Task.Delay(TimeSpan.FromDays(7), stoppingToken);
+                    // Calculate the delay until the send time next week.
+                    nextSendTime = CalculateNextSendTime(now.AddDays(7));
                 }
-                else
-                {
-                    // Check again in an hour.
-                    await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
-                }
+
+                var delay = nextSendTime - now;
+                if (delay < TimeSpan.Zero) delay = TimeSpan.FromHours(1); // Minimum delay of 1 hour to avoid tight loop.
+                await Task.Delay(delay, stoppingToken);
             }
         }
 
-        private  async Task SendWeeklyEmailsAsync()
+        private DateTime CalculateNextSendTime(DateTime currentTime)
+        {
+            // Calculate the next send time based on _dayToSend and _timeToSend.
+            // This is a simplified example. You'll need to adjust it based on your requirements.
+            var daysUntilSend = (_dayToSend - currentTime.DayOfWeek + 7) % 7;
+            daysUntilSend = daysUntilSend == 0 ? 7 : daysUntilSend; // Ensure it's always future.
+            var nextSendDate = currentTime.AddDays(daysUntilSend).Date;
+            return nextSendDate.Add(_timeToSend);
+        }
+
+        private async Task SendWeeklyEmailsAsync()
         {
             // Simulated operation for sending emails
             Console.WriteLine("Sending weekly emails...");

@@ -7,11 +7,7 @@
 
 @if (movies == null)
 {
-    <p><em>Loading...</em></p>
-}
-else if (!movies.Any())
-{
-    <p>You have not added any movies yet.</p>
+    <p><em>No Movies</em></p>
 }
 else
 {
@@ -23,17 +19,18 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var movie in movies)
-            {
-                <tr>
-                    <td>@movie.Title</td>
-                    <td>@movie.Year</td>
-                </tr>
-            }
+           @foreach (var movie in movies)
+{
+    <tr>
+        <td>@movie.Title</td>
+        <td>@movie.Year</td>
+        <td><button @onclick="() => DeleteMovie(movie)">DELETE</button></td>
+    </tr>
+}
         </tbody>
     </table>
 
-    <button @onclick="SendEmail">Force Email</button>
+    @* <button @onclick="SendEmail">Force Email</button> *@
 }
 
 @code {
@@ -52,6 +49,13 @@ else
                 movies = await MovieService.GetMoviesByUserAsync(userId);
             }
         }
+    }
+
+    private async Task DeleteMovie(Models.Movie movie)
+    {
+        await MovieService.DeleteMovieAsync(movie.Id);
+
+        movies = movies.Where(m => m.Id != movie.Id).ToList();
     }
 
     private async Task SendEmail()
